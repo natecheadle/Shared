@@ -1,2 +1,14 @@
+#IDE folders
+.idea
+.vs
 .vscode
+
+#Build Outputs
 build
+bin
+obj
+out
+install
+
+#IDE Specific Files
+CMakeSettings.json
