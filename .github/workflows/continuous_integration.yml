@@ -10,10 +10,10 @@ env:
   COVERAGE_DATA: Shared_Coverage_Report.dat
   CPP_TEST_REPORT: Shared_CPP_Test_Report.xml
   NET_TEST_REPORT: Shared_NET_Test_Report.xml
-  CMAKE_OVERLAY_DIR: ${{ github.workspace }}/Cpp/CMake/
-  CMAKE_PROJ_DIR: ${{ github.workspace }}/Cpp/
+  CMAKE_OVERLAY_DIR: ${{ github.workspace }}/cmake/
+  CMAKE_PROJ_DIR: ${{ github.workspace }}
   GTEST_OUTPUT: xml:Shared_CPP_Test_Report.xml
-  CMAKE_BUILD_DIR: ${{ github.workspace }}/Cpp/build/
+  CMAKE_BUILD_DIR: ${{ github.workspace }}/build/
   VCPKG_ROOT: ${{ github.workspace }}/vcpkg
 
 jobs:
