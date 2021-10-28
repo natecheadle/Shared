@@ -32,12 +32,12 @@ jobs:
           triplet: x64-linux-llvm
           toolchain-file: x64-linux-llvm.cmake
           startup-script: chmod +x ./configure_ubuntu.sh && sudo ./configure_ubuntu.sh && echo "/usr/bin/llvm_13/bin" >> $GITHUB_PATH
-          run-command: chmod +x ./install/bin/Shared_Test && ./install/bin/Shared_Test
+          run-command: chmod +x ./install/bin/Shared_Test && ./install/bin/Shared_Test && ls
         - os: "windows-latest"
           triplet: x64-windows-llvm-static
           toolchain-file: x64-windows-llvm.toolchain.cmake
           startup-script: ./configure_windows.ps1
-          run-command: .\install\bin\Shared_Test
+          run-command: .\install\bin\Shared_Test && dir
 
     steps:
       - name: Checkout Code
@@ -103,7 +103,7 @@ jobs:
         if: success()
         with:
           name: ${{matrix.os}}-${{matrix.type}}-C++-test-results
-          path: ${{ env.CMAKE_PROJ_DIR }}/${{env.CPP_TEST_REPORT}}
+          path: ./${{env.CPP_TEST_REPORT}}
           reporter: jest-junit
       
   code-coverage:
