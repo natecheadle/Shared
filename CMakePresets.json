@@ -82,18 +82,6 @@
             }
         },
         {
-            "name": "Linux-GCC",
-            "hidden": true,
-            "inherits": "Linux-Only",
-            "displayName": "Linux-GCC-Base",
-            "description": "Linux Configuration Using GCC",
-            "cacheVariables": {
-                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/x64-linux-gcc.cmake",
-                "VCPKG_TARGET_TRIPLET": "x64-linux-gcc",
-                "GCC_VERSION": "9"
-            }
-        },
-        {
             "name": "Linux-LLVM",
             "hidden": true,
             "inherits": "Linux-Only",
@@ -103,26 +91,6 @@
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/x64-linux-llvm.cmake",
                 "VCPKG_TARGET_TRIPLET": "x64-linux-llvm",
                 "CLANG_VERSION": "12"
-            }
-        },
-        {
-            "name": "Linux-GCC-Debug",
-            "displayName": "Linux GCC Debug Configuration",
-            "inherits": "Linux-GCC",
-            "binaryDir": "${sourceDir}/build/GCC/Debug",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "BUILD_COVERAGE": "OFF"
-            }
-        },
-        {
-            "name": "Linux-GCC-Release",
-            "displayName": "Linux GCC Release Configuration",
-            "inherits": "Linux-GCC",
-            "binaryDir": "${sourceDir}/build/GCC/Release",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "BUILD_COVERAGE": "OFF"
             }
         },
         {
@@ -221,16 +189,6 @@
         {
             "name": "Linux-LLVM-Debug",
             "configurePreset": "Linux-LLVM-Debug",
-            "inherits": "Linux-Default"
-        },
-        {
-            "name": "Linux-GCC-Release",
-            "configurePreset": "Linux-GCC-Release",
-            "inherits": "Linux-Default"
-        },
-        {
-            "name": "Linux-GCC-Debug",
-            "configurePreset": "Linux-GCC-Debug",
             "inherits": "Linux-Default"
         },
         {
