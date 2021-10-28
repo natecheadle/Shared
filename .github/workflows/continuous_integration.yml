@@ -107,11 +107,11 @@ jobs:
           reporter: jest-junit
 
       - name: Upload Build Artifacts
-          uses: actions/upload-artifact@v2
-          with:
-            name: ${{matrix.os}}.${{matrix.type}}
-            path: ./install
-            retention-days: 1
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{matrix.os}}.${{matrix.type}}
+          path: ./install
+          retention-days: 1
   code-coverage:
     needs: build
     runs-on: "ubuntu-latest"
