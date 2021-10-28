@@ -1,1 +1,145 @@
+name: Shared General Continuous Integration
 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  COVERAGE_DATA: Shared_Coverage_Report.dat
+  CPP_TEST_REPORT: Shared_CPP_Test_Report.xml
+  NET_TEST_REPORT: Shared_NET_Test_Report.xml
+  CMAKE_OVERLAY_DIR: ${{ github.workspace }}/cmake/
+  CMAKE_PROJ_DIR: ${{ github.workspace }}
+  GTEST_OUTPUT: xml:Shared_CPP_Test_Report.xml
+  CMAKE_BUILD_DIR: ${{ github.workspace }}/build/
+  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+jobs:
+  build:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:        
+        os: ["ubuntu-latest", "windows-latest"]
+        type: ["DEBUG", "RELEASE"]
+        include:
+        - type: "DEBUG"
+          code-coverage: "ON"
+        - type: "RELEASE"
+          code-coverage: "OFF"
+        - os: "ubuntu-latest"
+          triplet: x64-linux-llvm
+          toolchain-file: x64-linux-llvm.cmake
+          startup-script: chmod +x ./configure_ubuntu.sh && sudo ./configure_ubuntu.sh && echo "/usr/bin/llvm_13/bin" >> $GITHUB_PATH
+          run-command: chmod +x ./install/bin/Shared_Test && ./install/bin/Shared_Test
+        - os: "windows-latest"
+          triplet: x64-windows-llvm-static
+          toolchain-file: x64-windows-llvm.toolchain.cmake
+          startup-script: ./configure_windows.ps1
+          run-command: .\install\bin\Shared_Test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      
+      - name: Run package manager install
+        working-directory: "./.github/workflows/"
+        run: |
+          ${{matrix.startup-script}}
+      # Setup the build machine with the most recent versions of CMake and Ninja. Both are cached if not already: on subsequent runs both will be quickly restored from GitHub cache service.
+      - uses: lukka/get-cmake@latest
+
+      # Restore both vcpkg and its artifacts from the GitHub cache service.
+      - name: Restore vcpkg and its artifacts.
+        uses: actions/cache@v2
+        with:
+          # The first path is where vcpkg generates artifacts while consuming the vcpkg.json manifest file.
+          # The second path is the location of vcpkg (it contains the vcpkg executable and data files).
+          # The other paths starting with '!' are exclusions: they contain termporary files generated during the build of the installed packages.
+          path: |
+            ${{ env.CMAKE_BUILD_DIR }}/vcpkg_installed/
+            ${{ env.VCPKG_ROOT }}
+            !${{ env.VCPKG_ROOT }}/buildtrees
+            !${{ env.VCPKG_ROOT }}/packages
+            !${{ env.VCPKG_ROOT }}/downloads
+          # The key is composed in a way that it gets properly invalidated: this must happen whenever vcpkg's Git commit id changes, or the list of packages changes. In this case a cache miss must happen and a new entry with a new key with be pushed to GitHub the cache service.
+          # The key includes: hash of the vcpkg.json file, the hash of the vcpkg Git commit id, and the used vcpkg's triplet. The vcpkg's commit id would suffice, but computing an hash out it does not harm.
+          # Note: given a key, the cache content is immutable. If a cache entry has been created improperly, in order the recreate the right content the key must be changed as well, and it must be brand new (i.e. not existing already).
+          key: |
+            ${{ hashFiles( 'vcpkg_manifest/vcpkg.json' ) }}-${{ hashFiles( '.git/modules/vcpkg/HEAD' )}}-${{ matrix.triplet }}-invalidate
+      # On Windows runners, let's ensure to have the Developer Command Prompt environment setup correctly. As used here the Developer Command Prompt created is targeting x64 and using the default the Windows SDK.
+      - uses: ilammy/msvc-dev-cmd@v1
+      
+      # Run CMake to generate Ninja project files, using the vcpkg's toolchain file to resolve and install the dependencies as specified in vcpkg.json.
+      - name: Install dependencies and generate project files
+        working-directory: "${{ env.CMAKE_PROJ_DIR }}"
+        run: |
+          cmake -S . -B "${{ env.CMAKE_BUILD_DIR }}" -D VCPKG_OVERLAY_TRIPLETS=${{ env.CMAKE_OVERLAY_DIR }} -D CMAKE_BUILD_TYPE=${{matrix.type}} -G Ninja -D CMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" -D VCPKG_CHAINLOAD_TOOLCHAIN_FILE=${{ env.CMAKE_OVERLAY_DIR }}/${{matrix.toolchain-file}} -D VCPKG_TARGET_TRIPLET=${{matrix.triplet}} -D BUILD_COVERAGE=${{matrix.code-coverage}} .
+          
+      # Build the whole project with Ninja (which is spawn by CMake).
+      - name: Build C++
+        run: |
+          cmake --build "${{ env.CMAKE_BUILD_DIR }}"
+      
+      - name: Install C++ Project
+        working-directory: "${{ env.CMAKE_PROJ_DIR }}"
+        run: |
+          mkdir install &&
+          cd install &&
+          mkdir bin &&
+          mkdir inc &&
+          mkdir lib &&
+          cd .. &&
+          cmake --install ./build/ --prefix ./install
+      - name: Run C++ Tests
+        working-directory: "${{ env.CMAKE_PROJ_DIR }}"
+        run: ${{matrix.run-command}}
+
+      - name: Publish C++ Unit Test Results
+        uses: dorny/test-reporter@v1
+        if: success()
+        with:
+          name: ${{matrix.os}}-${{matrix.type}}-C++-test-results
+          path: ./${{env.CPP_TEST_REPORT}}
+          reporter: jest-junit
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{matrix.os}}.${{matrix.type}}
+          path: ./install
+          retention-days: 1
+  code-coverage:
+    needs: build
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Download a single artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ubuntu-latest.DEBUG
+          path: install
+
+      - name: Prep Environment
+        working-directory: ./.github/workflows
+        run: chmod +x ./configure_ubuntu.sh && sudo ./configure_ubuntu.sh && echo "/usr/bin/llvm_13/bin" >> $GITHUB_PATH
+
+      - name: Run Tests
+        run: |
+          chmod +x ./install/bin/Shared_Test
+          export LLVM_PROFILE_FILE="Shared_Test.profraw"
+          ./install/bin/Shared_Test
+      - name: Compile Code Coverage
+        run: |
+          llvm-profdata merge -sparse Shared_Test.profraw -o Shared_Test.profdata
+          llvm-cov export ./install/bin/Shared_Test -instr-profile=Shared_Test.profdata -ignore-filename-regex="vcpkg" -format lcov > ${{env.COVERAGE_DATA}}
+      - name: Publish Code Coverage Results
+        uses: romeovs/lcov-reporter-action@v0.2.21
+        with:
+          lcov-file: ${{env.COVERAGE_DATA}}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
