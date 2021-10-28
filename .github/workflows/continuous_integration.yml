@@ -131,13 +131,13 @@ jobs:
 
       - name: Run Tests
         run: |
-          chmod +x ./install/bin/CityBuilderDeluxeTest
-          export LLVM_PROFILE_FILE="CityBuilderDeluxeTest.profraw"
-          ./install/bin/CityBuilderDeluxeTest
+          chmod +x ./install/bin/Shared_Test
+          export LLVM_PROFILE_FILE="Shared_Test.profraw"
+          ./install/bin/Shared_Test
       - name: Compile Code Coverage
         run: |
-          llvm-profdata merge -sparse CityBuilderDeluxeTest.profraw -o CityBuilderDeluxeTest.profdata
-          llvm-cov export ./install/bin/CityBuilderDeluxeTest -instr-profile=CityBuilderDeluxeTest.profdata -ignore-filename-regex="vcpkg" -format lcov > ${{env.COVERAGE_DATA}}
+          llvm-profdata merge -sparse Shared_Test.profraw -o Shared_Test.profdata
+          llvm-cov export ./install/bin/Shared_Test -instr-profile=Shared_Test.profdata -ignore-filename-regex="vcpkg" -format lcov > ${{env.COVERAGE_DATA}}
       - name: Publish Code Coverage Results
         uses: romeovs/lcov-reporter-action@v0.2.21
         with:
