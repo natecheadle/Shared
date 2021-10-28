@@ -103,7 +103,7 @@ jobs:
         if: success()
         with:
           name: ${{matrix.os}}-${{matrix.type}}-C++-test-results
-          path: ./Cpp/${{env.CPP_TEST_REPORT}}
+          path: ${{ env.CMAKE_PROJ_DIR }}/${{env.CPP_TEST_REPORT}}
           reporter: jest-junit
       
   code-coverage:
