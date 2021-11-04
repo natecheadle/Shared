@@ -20,7 +20,7 @@ namespace Shared
       public:
         class Iterator
         {
-            Derived m_FancyValue;
+            Derived m_EnumValue;
             T_INT m_IntVal;
 
           public:
@@ -28,49 +28,49 @@ namespace Shared
             using difference_type   = std::ptrdiff_t;
 
             Iterator()
-                : m_FancyValue(Derived(ENUM_BEGIN))
+                : m_EnumValue(Derived(ENUM_BEGIN))
                 , m_IntVal(static_cast<T_INT>(ENUM_BEGIN))
             {
             }
 
             Iterator(T_ENUM enumValue)
-                : m_FancyValue(Derived(enumValue))
+                : m_EnumValue(Derived(enumValue))
                 , m_IntVal(static_cast<T_INT>(enumValue))
             {
             }
 
             Iterator(Derived f)
-                : m_FancyValue(f)
+                : m_EnumValue(f)
                 , m_IntVal(f.ToIntegral())
             {
             }
 
             Iterator(const Iterator& other)
-                : m_FancyValue(other.m_FancyValue)
+                : m_EnumValue(other.m_EnumValue)
                 , m_IntVal(other.m_IntVal)
             {
             }
 
             Iterator(Iterator&& other) noexcept
-                : m_FancyValue(other.m_FancyValue)
+                : m_EnumValue(other.m_EnumValue)
                 , m_IntVal(other.m_IntVal)
             {
-                other.m_FancyValue = Derived(ENUM_BEGIN);
+                other.m_EnumValue = Derived(ENUM_BEGIN);
                 other.m_IntVal     = static_cast<T_INT>(ENUM_BEGIN);
             }
 
             Iterator& operator++()
             {
-                auto oldValue = m_FancyValue;
-                if (++m_FancyValue == oldValue)
-                    m_IntVal = m_FancyValue.ToIntegral() + 1;
+                auto oldValue = m_EnumValue;
+                if (++m_EnumValue == oldValue)
+                    m_IntVal = m_EnumValue.ToIntegral() + 1;
                 else
-                    m_IntVal = m_FancyValue.ToIntegral();
+                    m_IntVal = m_EnumValue.ToIntegral();
 
                 return *this;
             }
 
-            const Enum& operator*() { return m_FancyValue; }
+            const Enum& operator*() { return m_EnumValue; }
             static Iterator Begin() { return Iterator(); }
             static Iterator End()
             {
@@ -78,7 +78,7 @@ namespace Shared
                 return endIter;
             }
 
-            bool operator!=(const Iterator& i) { return m_FancyValue != i.m_FancyValue || m_IntVal != i.m_IntVal; }
+            bool operator!=(const Iterator& i) { return m_EnumValue != i.m_EnumValue || m_IntVal != i.m_IntVal; }
         };
 
         Enum()
