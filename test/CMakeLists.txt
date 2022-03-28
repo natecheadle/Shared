@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
         "Serialize/BinaryWriter_Tests.cpp"
         "Serialize/FixedPoint_Tests.cpp"
         "Serialize/SerializeDeserialize_Tests.cpp"
+        "LookupTable/LookupTable_Tests.cpp"
         )
 
 find_package(GTest CONFIG REQUIRED)
