@@ -40,7 +40,7 @@ namespace Shared {
         }
     }
 
-    TEST(StaticQueue_Test, ValidateIterator)
+    TEST(StaticQueue_Tests, ValidateIterator)
     {
         StaticQueue<int, SIZE> queue;
 
