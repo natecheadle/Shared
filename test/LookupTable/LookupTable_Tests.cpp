@@ -1,4 +1,4 @@
-#include <LUT/CompileTimeLookup.hpp>
+#include <LookupTable/CompileTimeLookup.hpp>
 
 #include <gtest/gtest.h>
 
